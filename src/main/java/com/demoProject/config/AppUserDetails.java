@@ -3,12 +3,15 @@ package com.demoProject.config;
 import com.demoProject.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class AppUserDetails implements UserDetails {
+
     private final User user;
 
     @Override

@@ -3,14 +3,17 @@ package com.demoProject.config;
 import com.demoProject.exception.ResourceNotFoundException;
 import com.demoProject.model.TokenEntity;
 import com.demoProject.repository.TokenRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+@Component
+@RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
-    private TokenRepository tokenRepository;
+    private final TokenRepository tokenRepository;
     @Override
     public void logout(HttpServletRequest request,
                        HttpServletResponse response,

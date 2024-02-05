@@ -1,5 +1,6 @@
 package com.demoProject.config;
 
+import com.demoProject.repository.TokenRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * pass it to the next step in the filter chain.
      */
 
-    private JWTService jwtService;
-    private PassportUserDetailsService userDetailsService;
-    private TokenRepository tokenRepository;
+    private final JWTService jwtService;
+    private final AppUserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(

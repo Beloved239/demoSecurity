@@ -19,9 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private JwtAuthenticationFilter authenticationFilter;
-    private JwtEntryPoint authEntryPoint;
-    private LogoutService logoutService;
+    private final JwtAuthenticationFilter authenticationFilter;
+    private final JwtEntryPoint authEntryPoint;
+    private final LogoutService logoutService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

@@ -1,6 +1,8 @@
 package com.demoProject.config;
 
+import com.demoProject.exception.PermissionNotFoundException;
 import com.demoProject.model.User;
+import com.demoProject.repository.PermissionRepository;
 import com.demoProject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -18,7 +21,12 @@ import java.util.List;
 public class CustomPermissionEvaluator implements PermissionEvaluator {
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
-    private final List<Object> entityClasses = List.of(new User());
+    private final List<Object> entityClasses;
+
+    {
+        entityClasses = new ArrayList<>();
+        entityClasses.add(new User());
+    }
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
@@ -37,7 +45,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 
     private boolean checkUserHasPermissionForEntity(Authentication authentication, Object targetDomainObject, Object permission, Object entityToBeAccessed) {
 
-        UserEntity user = checkThatPermissionExistsAndUserExists(authentication, String.valueOf(permission));
+        User user = checkThatPermissionExistsAndUserExists(authentication, String.valueOf(permission));
 
         if (targetDomainObject.getClass().getName().equals(entityToBeAccessed.getClass().getName())) {
 

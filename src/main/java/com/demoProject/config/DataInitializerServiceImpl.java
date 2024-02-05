@@ -1,19 +1,27 @@
 package com.demoProject.config;
 
+import com.demoProject.dto.SignUpDto;
+import com.demoProject.model.User;
 import com.demoProject.repository.PermissionRepository;
 import com.demoProject.repository.RoleRepository;
 import com.demoProject.repository.UserRepository;
+import com.demoProject.role.PermissionEntity;
+import com.demoProject.role.Role;
+import com.demoProject.service.PermissionService;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import java.util.List;
-import java.util.Map;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Transactional
-public class DataInitializerServiceImpl {
+public class DataInitializerServiceImpl implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final EntityManager entityManager;
     private final PermissionRepository permissionRepository;
@@ -25,18 +33,17 @@ public class DataInitializerServiceImpl {
     private Map<String, List<String>> rolePermissionsMap;
 
 
-    public DataInitializerServiceImpl(RoleRepository roleRepository, EntityManager entityManager, PermissionRepository permissionRepository, PermissionService permissionService, PasswordEncoder passwordEncoder, UserRepository userRepository, OrganizationRepository organizationRepository) {
+    public DataInitializerServiceImpl(RoleRepository roleRepository, EntityManager entityManager, PermissionRepository permissionRepository, PermissionService permissionService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.roleRepository = roleRepository;
         this.entityManager = entityManager;
         this.permissionRepository = permissionRepository;
         this.permissionService = permissionService;
         this.userRepository = userRepository;
-        this.organizationRepository = organizationRepository;
         this.passwordEncoder = passwordEncoder;
 
     }
 
-    public RoleEntity saveOrUpdate(RoleEntity roleEntity) {
+    public Role saveOrUpdate(Role roleEntity) {
         roleEntity.getPermissions().forEach(entityManager::merge);
         return roleRepository.save(roleEntity);
     }
@@ -49,8 +56,6 @@ public class DataInitializerServiceImpl {
 
     @Override
     public void run(java.lang.String... args) {
-        createRoleIfNotFound("ROLE_ORGANIZATION_ADMIN");
-        createRoleIfNotFound("ROLE_SUPER_ADMIN");
         createRoleIfNotFound("ROLE_ADMIN");
         createRoleIfNotFound("ROLE_USER");
         //        Permission creation coming thru
@@ -58,17 +63,6 @@ public class DataInitializerServiceImpl {
         permissionService.createPermissionIfNotFound("READ_USER", "The \"Read\" operation involves retrieving existing data from the system.");
         permissionService.createPermissionIfNotFound("UPDATE_USER", "The \"Update\" operation involves modifying existing data in the system.");
         permissionService.createPermissionIfNotFound("DELETE_USER", "The \"Delete\" operation involves removing existing data from the system.");
-
-        // Additional CRUD Permission for assessment
-        permissionService.createPermissionIfNotFound("CREATE_ASSESSMENT", "The \"Create\" operation involves adding a new assessment to the system.");
-        permissionService.createPermissionIfNotFound("READ_ASSESSMENT", "The \"Read\" operation involves retrieving information about assessments in the system.");
-        permissionService.createPermissionIfNotFound("UPDATE_ASSESSMENT", "The \"Update\" operation involves modifying existing assessment data in the system.");
-        permissionService.createPermissionIfNotFound("DELETE_ASSESSMENT", "The \"Delete\" operation involves removing an assessment from the system.");
-
-        permissionService.createPermissionIfNotFound("CREATE_QUESTION", "The \"Create\" operation involves adding a new question to the system.");
-        permissionService.createPermissionIfNotFound("READ_QUESTION", "The \"Read\" operation involves retrieving information about questions in the system.");
-        permissionService.createPermissionIfNotFound("UPDATE_QUESTION", "The \"Update\" operation involves modifying existing question data in the system.");
-        permissionService.createPermissionIfNotFound("DELETE_QUESTION", "The \"Delete\" operation involves removing a question from the system.");
 
 
         rolePermissionsMap = allocatePermissionsToRoles();
@@ -86,41 +80,34 @@ public class DataInitializerServiceImpl {
 
 
     private void createRoleIfNotFound(String roleName) {
-        Optional<RoleEntity> roleOptional = roleRepository.findByRoleName(roleName);
-        if (roleOptional.isEmpty()) {
-            RoleEntity role = RoleEntity.builder().roleName(roleName).build();
+        Optional<Role> roleOptional = roleRepository.findByRoleName(roleName);
+        if (!roleOptional.isPresent()) {
+            Role role = Role.builder().roleName(roleName).build();
             roleRepository.save(role);
         }
     }
 
     private void createSystemUser(SignUpDto request) {
         String username = convertToTitleCase(request.getFirstName()) + convertToTitleCase(request.getLastName()) + generateRandomDigits();
-        Optional<UserEntity> optionalUser = userRepository.findByEmail(request.getEmail());
-        if (optionalUser.isEmpty()) {
-            UserEntity user = UserEntity.builder()
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        if (!optionalUser.isPresent()) {
+            User user = User.builder()
                     .email(request.getEmail())
                     .firstName(request.getFirstName())
                     .username(username)
                     .password(request.getPassword())
-                    .usertype(UserType.ADMINISTRATOR)
+//                    .usertype(UserType.ADMINISTRATOR)
                     .phoneNumber(request.getPhoneNumber())
                     .middleName(null)
                     .isEnabled(true)
                     .build();
-            user.setCreatedBy(username);
+//            user.setCreatedBy(username);
 
-            Optional<RoleEntity> roleOptional = roleRepository.findByRoleName("ROLE_SUPER_ADMIN");
+            Optional<Role> roleOptional = roleRepository.findByRoleName("ROLE_SUPER_ADMIN");
             user.setRoleEntities(Collections.singleton(roleOptional.get()));
 
             userRepository.saveAndFlush(user);
-            OrganizationEntity organizationEntity = OrganizationEntity.builder()
-                    .name(request.getOrganizationName())
-                    .rcNumber(request.getOrganizationRCNumber())
-                    .status(Status.ACTIVE)
-                    .userEntities(List.of(user))
-                    .uniqueCode(0).build();
-            organizationEntity.setCreatedBy(username);
-            organizationRepository.save(organizationEntity);
+//
         }
     }
 
@@ -129,14 +116,10 @@ public class DataInitializerServiceImpl {
         try {
             // Map role names to associated permissions
             Map<java.lang.String, List<java.lang.String>> rolePermissionsMap = new HashMap<>();
-            rolePermissionsMap.put("ROLE_SUPER_ADMIN", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER",
-                    "CREATE_ASSESSMENT", "UPDATE_ASSESSMENT", "READ_ASSESSMENT", "DELETE_ASSESSMENT", "CREATE_QUESTION", "READ_QUESTION", "UPDATE_QUESTION", "DELETE_QUESTION"));
-            rolePermissionsMap.put("ROLE_ORGANIZATION_ADMIN", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER",
-                    "CREATE_ASSESSMENT", "READ_ASSESSMENT", "UPDATE_ASSESSMENT", "CREATE_QUESTION", "READ_QUESTION", "UPDATE_QUESTION"));
-            rolePermissionsMap.put("ROLE_ADMIN", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER",
-                    "CREATE_ASSESSMENT", "READ_ASSESSMENT", "UPDATE_ASSESSMENT", "CREATE_QUESTION", "READ_QUESTION", "UPDATE_QUESTION"));
-            rolePermissionsMap.put("ROLE_USER", Arrays.asList("CREATE_USER", "UPDATE_USER", "READ_USER", "READ_ASSESSMENT"
-            ));
+            rolePermissionsMap.put("ROLE_HR", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"));
+
+            rolePermissionsMap.put("ROLE_ADMIN", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER"));
+            rolePermissionsMap.put("ROLE_USER", Arrays.asList("CREATE_USER", "UPDATE_USER", "READ_USER"));
 
             for (Map.Entry<java.lang.String, List<java.lang.String>> entry : rolePermissionsMap.entrySet()) {
                 List<PermissionEntity> permissions = entry.getValue().stream()
@@ -160,11 +143,11 @@ public class DataInitializerServiceImpl {
     private void createRoleAndAssignPermissions(java.lang.String roleName, List<PermissionEntity> permissions) {
         try {
             // Check if the role already exists
-            RoleEntity role = roleRepository.findByRoleName(roleName).orElse(null);
+            Role role = roleRepository.findByRoleName(roleName).orElse(null);
 
             // If the role doesn't exist, create it
             if (role == null) {
-                role = RoleEntity.builder().roleName(roleName).build();
+                role = Role.builder().roleName(roleName).build();
                 roleRepository.save(role);
             }
 
@@ -176,7 +159,7 @@ public class DataInitializerServiceImpl {
                 }
 
                 // Filter out existing permissions ensuring there is no duplicate
-                RoleEntity finalRole = role;
+                Role finalRole = role;
                 List<PermissionEntity> newPermissions = permissions.stream()
                         .filter(permission -> !finalRole.getPermissions().contains(permission))
                         .collect(Collectors.toList());
@@ -189,5 +172,15 @@ public class DataInitializerServiceImpl {
             // log the exception
             e.printStackTrace();
         }
+    }
+
+    public static String convertToTitleCase(String inputCase) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(inputCase.substring(0, 1).toUpperCase()).append(inputCase.substring(1).toLowerCase());
+        return String.valueOf(sb);
+    }
+    public static String generateRandomDigits() {
+        int randomDigits = 1000 + new SecureRandom().nextInt(9000);
+        return String.valueOf(randomDigits);
     }
 }
