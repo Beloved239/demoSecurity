@@ -13,8 +13,8 @@ import java.util.Set;
 @Builder
 public class PermissionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
     private String name;
     private String description;
 

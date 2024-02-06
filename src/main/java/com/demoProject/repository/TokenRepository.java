@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface TokenRepository extends JpaRepository<TokenEntity,String> {
+public interface TokenRepository extends JpaRepository<TokenEntity,Long> {
 //    Boolean findByToken(String jwt);
 @Query("select t from TokenEntity t where t.userEntity.id = ?1 and t.expired = false and t.revoked = false")
 List<TokenEntity> findAllValidTokensByUserId(String id);

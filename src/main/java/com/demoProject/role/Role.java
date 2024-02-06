@@ -14,8 +14,8 @@ import java.util.Set;
 @Builder
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
     private String roleName;
     private String description;
 

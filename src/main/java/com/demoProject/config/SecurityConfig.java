@@ -32,17 +32,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(httpRequests ->
                         httpRequests.
                                 antMatchers(
-                                        "api/v1/regportal/login",
-                                        "api/v1/regportal/signup",
-                                        "api/v1/regportal/signup/**",
-                                        "api/v1/regportal/refreshToken",
-                                        "api/v1/regportal/reset-password-mail",
-                                        "api/v1/regportal/reset-password",
-                                        "/api/v1/regportal/verify-email",
-                                        "/api/v1/regportal/resend-email",
-                                        "/api/v1/regportal/email/sendMail"
+                                        "api/home"
                                 ).permitAll()
-                                .anyRequest().authenticated());
+                                .anyRequest().permitAll());
         http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.logout(logout -> logout
                 .logoutUrl("api/v1/regportal/logout")

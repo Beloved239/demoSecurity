@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -21,12 +22,14 @@ import java.util.List;
 public class CustomPermissionEvaluator implements PermissionEvaluator {
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
-    private final List<Object> entityClasses;
-
-    {
-        entityClasses = new ArrayList<>();
-        entityClasses.add(new User());
-    }
+//    private final List<Object> entityClasses;
+//
+//    {
+//        entityClasses = new ArrayList<>();
+//        entityClasses.add(new User());
+//    }
+//    private final List<Object> entityClasses = List.of(new User());
+    private final ArrayList<Object> entityClasses ;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {

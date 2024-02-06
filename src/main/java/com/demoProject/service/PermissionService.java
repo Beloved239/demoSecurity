@@ -2,12 +2,15 @@ package com.demoProject.service;
 
 import com.demoProject.repository.PermissionRepository;
 import com.demoProject.role.PermissionEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 public class PermissionService {
+    //dependency injection
     private final PermissionRepository permissionRepository;
 
     public PermissionService(PermissionRepository permissionRepository) {

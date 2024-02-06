@@ -1,5 +1,6 @@
 package com.demoProject.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = false)
+@RequiredArgsConstructor
 public class PermissionEvaluatorConfiguration {
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

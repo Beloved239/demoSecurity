@@ -3,10 +3,12 @@ package com.demoProject.model;
 import com.demoProject.role.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,10 +16,15 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Builder
+@Table(name = "user")
 public class User extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private String id;
+    @GeneratedValue( strategy = GenerationType.AUTO)
+    private Long id;
+//    @Id
+//    @GeneratedValue(generator="system-uuid")
+//    @GenericGenerator(name="system-uuid", strategy = "uuid")
+//    private String id = UUID.randomUUID().toString();
     private String email;
     private String firstName;
     private String middleName;

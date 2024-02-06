@@ -22,6 +22,13 @@ import java.util.stream.Collectors;
 @Component
 @Transactional
 public class DataInitializerServiceImpl implements CommandLineRunner {
+
+    /**
+     * ACTORS:
+     * 1. ADMIN: CREATES AND DELETES PROFILES BY PERMISSION
+     * 2. USERS
+     *
+     */
     private final RoleRepository roleRepository;
     private final EntityManager entityManager;
     private final PermissionRepository permissionRepository;
@@ -33,14 +40,14 @@ public class DataInitializerServiceImpl implements CommandLineRunner {
     private Map<String, List<String>> rolePermissionsMap;
 
 
-    public DataInitializerServiceImpl(RoleRepository roleRepository, EntityManager entityManager, PermissionRepository permissionRepository, PermissionService permissionService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public DataInitializerServiceImpl(RoleRepository roleRepository, EntityManager entityManager, PermissionRepository permissionRepository, PermissionService permissionService, PasswordEncoder passwordEncoder, UserRepository userRepository, Map<String, List<String>> rolePermissionsMap) {
         this.roleRepository = roleRepository;
         this.entityManager = entityManager;
         this.permissionRepository = permissionRepository;
         this.permissionService = permissionService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-
+        this.rolePermissionsMap = rolePermissionsMap;
     }
 
     public Role saveOrUpdate(Role roleEntity) {
@@ -103,7 +110,7 @@ public class DataInitializerServiceImpl implements CommandLineRunner {
                     .build();
 //            user.setCreatedBy(username);
 
-            Optional<Role> roleOptional = roleRepository.findByRoleName("ROLE_SUPER_ADMIN");
+            Optional<Role> roleOptional = roleRepository.findByRoleName("ROLE_ADMIN");
             user.setRoleEntities(Collections.singleton(roleOptional.get()));
 
             userRepository.saveAndFlush(user);
@@ -116,8 +123,7 @@ public class DataInitializerServiceImpl implements CommandLineRunner {
         try {
             // Map role names to associated permissions
             Map<java.lang.String, List<java.lang.String>> rolePermissionsMap = new HashMap<>();
-            rolePermissionsMap.put("ROLE_HR", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"));
-
+//            rolePermissionsMap.put("ROLE_HR", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER", "DELETE_USER"));
             rolePermissionsMap.put("ROLE_ADMIN", Arrays.asList("CREATE_USER", "READ_USER", "UPDATE_USER"));
             rolePermissionsMap.put("ROLE_USER", Arrays.asList("CREATE_USER", "UPDATE_USER", "READ_USER"));
 
@@ -127,7 +133,6 @@ public class DataInitializerServiceImpl implements CommandLineRunner {
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toList());
-
                 createRoleAndAssignPermissions(entry.getKey(), permissions);
             }
 
